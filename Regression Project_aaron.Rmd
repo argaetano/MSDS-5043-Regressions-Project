@@ -1,0 +1,47 @@
+---
+title: "Exploring the Prediction of Rent Rate using Neighboring Properties Data"
+author: "Group 1"
+date: "November 27, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1) An examination of the distributions of the variables
+```{r}
+comm_prop <- read.csv("comm_prop.csv")
+head(comm_prop,5)
+```
+
+
+
+```{r comm_prop, echo=FALSE}
+par(mfrow = c(3,3))
+hist(comm_prop$RentRate)
+hist(comm_prop$Age)
+hist(comm_prop$OperExp)
+hist(comm_prop$VacRate)
+hist(comm_prop$SqFt)
+hist(comm_prop$Taxes)
+hist(comm_prop$W2MiDT)
+
+```
+
+
+## 2) An examination of the correlations for all of the continuous variables.
+```{r comm-prop.2, echo=FALSE}
+cor(comm_prop[1:6])
+```
+
+####  The Correlation Matrix Scatterplot of continuous variables.
+
+There are moderate relationships between <strong>OperExp</strong> and <strong>RentRate</strong>, <strong>OperExp</strong> and <strong>SqFt</strong>, <strong>OperExp</strong> and <strong>Taxes</strong>.
+
+There are strong relationships between <strong>RentRate</strong> and <strong>SqFt</strong>, <strong>RentRate</strong> and 
+<strong>Taxes</strong>, and a very strong relationship between <strong>Taxes</strong> and <strong>SqFt</strong>.
+
+```{r comm_prop.2A, echO=FALSE}
+pairs(comm_prop[1:6], pch=16)
+```
