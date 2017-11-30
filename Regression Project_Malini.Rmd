@@ -15,6 +15,7 @@ library(scales)
 library(stats)
 library(car)
 library(GGally)
+library(corrplot)
 ```
 
 ## 1) An examination of the distributions of the variables
@@ -44,6 +45,11 @@ hist(comm_prop$W2MiDT)
 
 ```{r comm-prop.2, echo=FALSE}
 cor(comm_prop[1:6])
+```
+
+
+```{r comm-prop.2, echo=FALSE}
+corrplot(cor(comm_prop[,1:6]), method="ellipse")
 ```
 
 
