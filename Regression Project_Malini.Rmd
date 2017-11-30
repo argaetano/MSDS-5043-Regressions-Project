@@ -1,0 +1,60 @@
+---
+title: "Exploring the Prediction of Rent Rate using Neighboring Properties Data"
+author: "Group 1"
+date: "November 27, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(dplyr)
+library(Hmisc)
+library(scales)
+library(stats)
+library(car)
+library(GGally)
+```
+
+## 1) An examination of the distributions of the variables
+
+```{r}
+comm_prop <- read.csv("comm_prop.csv", header=TRUE)
+attach(comm_prop)
+head(comm_prop,5)
+```
+
+
+
+```{r comm_prop, echo=FALSE}
+par(mfrow = c(3,3))
+hist(comm_prop$RentRate)
+hist(comm_prop$Age)
+hist(comm_prop$OperExp)
+hist(comm_prop$VacRate)
+hist(comm_prop$SqFt)
+hist(comm_prop$Taxes)
+hist(comm_prop$W2MiDT)
+
+```
+
+
+## 2) An examination of the correlations for all of the continuous variables.
+
+```{r comm-prop.2, echo=FALSE}
+cor(comm_prop[1:6])
+```
+
+
+```{r comm_prop.2A, echO=FALSE}
+ ggpairs(comm_prop[,1:6] , 
+        lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
+        diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
+```
+
+The graph shows that there is a strong correlation between Taxes and SQft. 
+Vacancy rate and operating expense shows negative correlation, which states that operating expense is close to zero if the building is available for rent. 
+
+With this given sample data, it seems the profit will depend on how much rental rate is for the building. 
+Concluding, rental rate will be our outcome variable.
