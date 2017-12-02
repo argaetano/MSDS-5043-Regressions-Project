@@ -51,8 +51,10 @@ summary(m)
 car::ncvTest(m) #pass
 shapiro.test(m$residuals) #low p-valud but pass
 
-#Tails are a bit out, this could suggest non-constant variance.
+"Tails are a bit out, this could suggest non-constant variance. However, we formally tested via the
+ncvTest and did not reject the null hypothesis."
 qqnorm(fit.2$residuals, pch=16)
 qqline(fit.2$residuals)
 
+# Does not suggest Multicollinearity.
 car::vif(m)
