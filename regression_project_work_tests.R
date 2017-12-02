@@ -58,3 +58,9 @@ qqline(fit.2$residuals)
 
 # Does not suggest Multicollinearity.
 car::vif(m)
+
+"Start on Predict: We are 95% confidence that the value of RentRate will be between 
+14.17338 and 18.20759"
+new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=5.40,W2MiDT="No")
+predict(m, newdata = new_obs, interval="predict")
+
