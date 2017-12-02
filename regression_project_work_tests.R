@@ -29,11 +29,30 @@ subsets <- regsubsets(RentRate ~ ., data=comm_prop)
 plot(subsets, scale="adjr2")
 #^^ Based on the plot, our variable selection should be Age, OperExp, Taxes, and W2MiDT.
 
+"Model's attributes:
+Adjusted R^2: .73 -Very high adjusted R-squared value. 73% of the RentRate's variation can be 
+explained by the Age, OperExp, W2MiDT, and Taxes variables.
+
+F-statistic: 68.36
+
+P-values:
+Age: 1.73e-07
+OperExp: 5.18e-07
+W2MiDTYes: 1.66e-07
+
+Model Coeficients:
+Age:        -0.10398
+OperExp:    0.23731
+W2MiDTYes:  1.43475
+Taxes:      0.36898
+"
 m <- lm(RentRate ~ Age+OperExp+W2MiDT+Taxes, data=comm_prop)
 summary(m)
 car::ncvTest(m) #pass
 shapiro.test(m$residuals) #low p-valud but pass
 
-#Tails are a bit out
+#Tails are a bit out, this could suggest non-constant variance.
 qqnorm(fit.2$residuals, pch=16)
 qqline(fit.2$residuals)
+
+car::vif(m)
