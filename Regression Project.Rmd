@@ -38,16 +38,25 @@ ditribution shape to it as well.
 
 ```{r}
 round(cor(comm_prop),2)
-library(corrplot)
-corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
-
 ```
 
+```{r}
+library(GGally)
+ggpairs(comm_prop[,1:6] , 
+        lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
+        diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
+```
+
+```{r}
+library(corrplot)
+corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
+```
 
 RentRate and OperExp have a moderate correlation. RentRate and SqFt have a moderate correlation as well.
 RentRate and Taxes share the same correlation with .58. W2MiDT has the strongest 
 correlation with RentRate with a correlation coefficent of.70. SqFt and Taxes have a perfect correlation
 with 1.00.
+
 
 ```{r,warning=FALSE}
 library(leaps)
@@ -62,6 +71,19 @@ plot(subsets, scale="adjr2")
 m <- lm(RentRate ~ Age+OperExp+W2MiDT+Taxes, data=comm_prop)
 summary(m)
 
+```
+#Review and Interpretation of diagnostic plots
+```{r}
+leveragePlots(m,pch=16)
+```
+
+```{r}
+m_df <- fortify(m)
+
+ggplot(m_df, aes(x=.fitted, y=.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x="Fitted Values", y="Residuals")
 ```
 
 **Checking for constant variance**
@@ -107,3 +129,8 @@ Start on Predict: We are 95% confidence that the value of RentRate will be betwe
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=5.40,W2MiDT=0)
 predict(m, newdata = new_obs, interval="predict")
 ```
+
+
+**Stepwise regression by manually removing variables **
+
+

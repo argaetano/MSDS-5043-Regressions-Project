@@ -64,3 +64,94 @@ Vacancy rate and operating expense shows negative correlation, which states that
 
 With this given sample data, it seems the profit will depend on how much rental rate is for the building. 
 Concluding, rental rate will be our outcome variable.
+
+
+```{r}
+model_1 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + Age:SqFt + Age:W2MiDT + OperExp:VacRate + OperExp:SqFt + OperExp:W2MiDT + VacRate:SqFt + SqFt:W2MiDT, data=comm_prop)
+summary(model_1)
+```
+
+```{r}
+#remove VacRate:SqFt
+model_2 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + Age:SqFt + Age:W2MiDT + OperExp:VacRate + OperExp:SqFt + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_2)
+```
+
+```{r}
+#remove OpenExp:SqFt
+model_3 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + Age:SqFt + Age:W2MiDT + OperExp:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_3)
+```
+
+```{r}
+#remove Age:SqFt
+model_4 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + Age:W2MiDT + OperExp:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_4)
+```
+
+```{r}
+#remove Age:W2MiDT
+model_5 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + OperExp:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_5)
+```
+
+```{r}
+#remove OpenExp:VacRate
+model_6 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:OperExp + Age:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_6)
+```
+
+```{r}
+#remove Age:OpenExp  - Taking this as Model
+model_7 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(model_7)
+
+
+leveragePlots(model_7,pch=16)
+
+
+```
+```{r}
+model_7_df <- fortify(model_7)
+
+ggplot(model_7_df, aes(x=.fitted, y=.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x="Fitted Values", y="Residuals")
+```
+
+
+**Checking for constant variance**
+```{r}
+car::ncvTest(model_7)
+
+```
+
+**Conclusion: Variance is constant**  
+
+**Checking for Normality of Residuals**
+```{r}
+shapiro.test(model_7$residuals)
+
+```
+
+**The residuals are approximately normal**
+
+####Visual Representation of Normality and Constant Variance Tests
+```{r}
+par(mfrow=c(2,2))
+hist(model_7$residuals)
+plot(model_7$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
+abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
+qqnorm(model_7$residuals, pch=16)
+qqline(model_7$residuals)
+```
+
+Tails are a bit out, which could suggest non-constant variance. However, we formally tested via the
+ncvTest and did not reject the null hypothesis.
+
+**Test for Multicolinearity**
+```{r}
+car::vif(model_7)
+
+```
