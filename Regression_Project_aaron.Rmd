@@ -1,0 +1,241 @@
+---
+title: "Regression_Project_Final"
+author: "Aaron Goletz"
+date: "December 6, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1) An examination of the distributions of the variables
+```{r}
+comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
+comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
+head(comm_prop,5)
+```
+
+
+
+```{r comm_prop, echo=FALSE}
+par(mfrow = c(3,3))
+hist(comm_prop$RentRate)
+hist(comm_prop$Age)
+hist(comm_prop$OperExp)
+hist(comm_prop$VacRate)
+hist(comm_prop$SqFt)
+hist(comm_prop$Taxes)
+plot(comm_prop$W2MiDT , xlab="Within 2 Miles of Downtown", ylab="Frequency")
+```
+
+VacRate's distribution contains strong Right/positive skewness. SqFt and Taxes contain a slight amount of 
+right skewness. OperExp contains a slight amount of left/negative skewness. Age has an unusual 
+ditribution shape to it as well.  W2MiDTNo has a higher frequncy.
+
+#2)  An examination of the correlations for all continuous variables.
+
+```{r}
+round(cor(comm_prop[1:6]),3)
+```
+
+```{r}
+library(GGally)
+ggpairs(comm_prop[,1:7] , 
+        lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
+        diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
+```
+
+```{r}
+library(corrplot)
+corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
+```
+
+RentRate and OperExp have a moderate positive correlation. RentRate and SqFt have a strong positive correlation as well.  RentRate and Taxes share the same correlation with .584. SqFt and Taxes have a perfect correlation
+with 1.00.  Other significant correlations are a negative correlation of -.366 between VacRate and OperExp and a lower correlations between Age and OperExp and a negative correlation between Age and RentRate.  
+
+
+#3)  The identification and evaluation of a suitable regression model for predicting rental rates based on the other variables in the dataset.
+
+A manual iteration selection method will be used first.  The results will later be compared to results from Stepwise and ASR selection methods in order to select the most appropriate linear model.
+
+
+###Manual Iterations###
+```{r, warning=F}
+m <- lm(RentRate ~ ., data=comm_prop)
+summary(m)
+```
+
+Results show the model's significant variables are Age, VacRate, and W2MiDT.  with an Adjusted R-squared value of 0.73, a F-statistic of 45.61 and a high significant p-value of 2.2e-16.  The model will now be trimmed to remove non-significant variables.
+
+First, VacRate will be dropp due to non-significance and it an unknown variable in our final prediction. Also.,the variable Taxes (0.429) will be dropped from the model, due to multicolinearity with SqFt (0.434).  
+
+```{r, warning=F}
+m.1 <- lm(RentRate ~ Age+OperExp+SqFt+W2MiDT, data=comm_prop)
+summary(m.1)
+```
+
+All variables are highly significant.  Model m.1's summary shows an increased Adjusted R-squared value of 0.7313, an increased F-Statistic of 68.35, and no change in the p-value.
+
+
+###Stepwise Iterations###
+
+```{r,warning=FALSE}
+library(MASS)
+comm_prop.full <- lm(RentRate ~ .*., data = comm_prop)
+stepAIC(comm_prop.full, direction ="backward")
+```
+
+The stepAIC yields the following formula for an optimal linear model:
+
+    formula = RentRate ~ Age + OperExp + VacRate + Taxes + W2MiDT + 
+    Age:OperExp + Age:VacRate + OperExp:VacRate + OperExp:W2MiDT + 
+    Taxes:W2MiDT
+    
+The model will be created (without the VacRate variable and interactions) and trimmed in the next section.
+
+```{r, warning=F}
+m.step <- lm(formula = RentRate ~ Age + OperExp + Taxes + W2MiDT + 
+    Age:OperExp + OperExp:W2MiDT + 
+    Taxes:W2MiDT, data = comm_prop)
+summary(m.step)
+```
+
+The m.step model has an Adjusted R-squared value of 0.8171 and an F-Statistic of 64.18 with a highly significant p-value, <2.2e-16.
+
+The Taxes variable is not significant, but it will stay in the model as its interaction with W2MiDT is highly significant.
+
+
+###ASR Iteration###
+
+```{r,warning=FALSE}
+library(leaps)
+subsets <- regsubsets(RentRate ~ .*., data=comm_prop)
+plot(subsets, scale="adjr2")
+
+```
+
+Based on the subsets plot, our variable selection should be Age, OperExp, W2MiDT, Age:OperExp, Age:VacRate, Age:Taxes, OperExp:W2MiDT, and SqFt:W2MiDT.
+
+No VacRate interaction will be used, as it is an unknown variable in our final prediction.
+
+```{r}
+m.sub <- lm(RentRate ~ Age+OperExp+W2MiDT+Age:OperExp+Age:Taxes+OperExp:W2MiDT+SqFt:W2MiDT, data=comm_prop)
+summary(m.sub)
+
+```
+
+The results of model m.sub are an Adjusted R-squared value of 0.8175, an F-statistic of 56.45, and a highly significant p-value of <2.2e-16.
+
+The subset Age:Taxes is not significant so it can be trimmed from the model.  
+
+```{r, warning=F}
+m.sub1 <- lm(RentRate ~ Age+OperExp+W2MiDT+Age:OperExp+OperExp:W2MiDT+SqFt:W2MiDT, data=comm_prop)
+summary(m.sub1)
+```
+
+
+The Adjusted R-squared value decreased slightly to 0.8171.  The F-Statistic increased to 64.18 and the p-value had no change.  
+
+
+##Review and Interpretation of diagnostic plots##
+              
+                <strong>Adjusted R-sqrd   F-Statistic</strong> 
+              m.2       0.7313            68.35 
+              m.step    0.8171            64.18
+              m.sub1    0.8171            64.18
+      
+
+####Models m.step1 and m.sub1 appear to to have the same values for F-Statistic and Adjusted R-squared the most appropriate predictive model.  Further examination will need to be conducted to determine the most appropriate model.####
+
+```{r}
+library(car)
+leveragePlots(m.1,pch=16)
+leveragePlots(m.step,pch=16)
+leveragePlots(m.sub1,pch=16)
+```
+
+###Residuals Variance Plot###
+```{r}
+library(ggplot2)
+m_df <- fortify(m.1)
+ggplot(m_df, aes(x=.fitted, y=.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x="Fitted Values", y="Residuals", title="m.1")
+m.step_df <- fortify(m.step)
+ggplot(m.step_df, aes(x=.fitted, y=.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x="Fitted Values", y="Residuals", title="m.step1")
+m.sub_df <- fortify(m.sub1)
+ggplot(m.sub_df, aes(x=.fitted, y=.resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x="Fitted Values", y="Residuals", title="m.sub1")
+```
+Models m.step and m.sub1 both seem to cluster in the middle section of the plot.  This suggests non-constant variance.
+
+
+###Checking for constant variance###
+```{r}
+car::ncvTest(m.1)
+car::ncvTest(m.step)
+car::ncvTest(m.sub1)
+```
+
+Conclusion: Significantly low p-values for the ncvTest confirm that both the m.step and m.sub1 models have non-constant variance.  The m.1 model maintains constant variance, however.
+
+
+###Checking for Normality of Residuals###
+```{r}
+shapiro.test(m.1$residuals)
+shapiro.test(m.step$residuals)
+shapiro.test(m.sub1$residuals)
+```
+
+Conclusion: Significantly low p-values for the Shapiro-Wilk test confirm that both the m.step and m.sub1 models' are not normally distributed.  The m.1 model is normal.
+
+###Visual Representation of Normality and Constant Variance Tests###
+```{r}
+par(mfrow=c(3,3))
+hist(m.1$residuals)
+plot(m.1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
+abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
+qqnorm(m.1$residuals, pch=16)
+qqline(m.1$residuals)
+hist(m.step$residuals)
+plot(m.step$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
+abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
+qqnorm(m.step$residuals, pch=16)
+qqline(m.step$residuals)
+hist(m.sub1$residuals)
+plot(m.sub1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
+abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
+qqnorm(m.sub1$residuals, pch=16)
+qqline(m.sub1$residuals)
+```
+
+
+
+###Test for Multicolinearity###
+```{r}
+car::vif(m.1)
+car::vif(m.step)
+car::vif(m.sub1)
+
+```
+Conclusion:  Tests suggest no Multicolinearity.
+
+
+Without further data transformation, due to the non-constant variance and disnormality of the m.step and m.sub1 models, m.1 is the most appropriate model to use in our prediction.
+
+```{r}
+new_obs = data.frame(Age=9, SqFt=40,OperExp=13,W2MiDT="No")
+predict(m.1, newdata = new_obs, interval="predict")
+new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
+predict(m.step, newdata = new_obs, interval="predict")
+new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
+predict(m.sub1, newdata = new_obs, interval="predict")
+```
+Prediction: We are 95% confidence that the value of RentRate will be between $12,120.37 and $16,235.17.  With the combined costs of Operating Expenses and Taxes, $13540.00, we cannot say with confidence that we will be able to "offset the costs of ownership."  We should sell the building.
