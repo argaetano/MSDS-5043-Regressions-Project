@@ -12,22 +12,24 @@ library(dplyr)
 library(Hmisc)
 library(scales)
 library(stats)
+library(MASS)
 library(leaps)
 library(car)
 library(GGally)
 library(corrplot)
+library(knitr)
 ```
 
 # 1) An examination of the distributions of the variables
-```{r}
+```{r, results='asis'}
 # comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
 comm_prop <- read.csv("comm_prop.csv")
 comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
-head(comm_prop,5)
+kable(head(comm_prop,5), format = "html", align='c', caption = "Example of Data")
 ```
 
 
-
+###Histograms for distribution visualization
 ```{r comm_prop, echo=FALSE}
 par(mfrow = c(3,3))
 hist(comm_prop$RentRate)
@@ -51,8 +53,7 @@ round(cor(comm_prop[1:6]),3)
 ```
 
 **Correlation Matrix with scatterplots and correlation coefficients**
-```{r}
-library(GGally)
+```{r,results="hide",fig.keep='all'}
 ggpairs(comm_prop[,1:7] , 
         lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
         diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
@@ -60,7 +61,6 @@ ggpairs(comm_prop[,1:7] ,
 
 **Correlation Matrix with ellipse representation of scatterplots**
 ```{r}
-library(corrplot)
 corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
 ```
 
@@ -93,8 +93,7 @@ summary(m.1)
 
 ##b) Stepwise Iterations
 
-```{r,warning=FALSE,echo=FALSE,results='hide'}
-library(MASS)
+```{r,warning=FALSE,results="hide"}
 comm_prop.full <- lm(RentRate ~ .*., data = comm_prop)
 stepAIC(comm_prop.full, direction ="backward")
 ```
