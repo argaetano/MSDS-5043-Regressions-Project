@@ -2,7 +2,9 @@
 title: "Regression_Project_Final"
 author: "Aaron Goletz"
 date: "December 6, 2017"
-output: html_document
+output:
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -27,24 +29,26 @@ library(knitr)
 comm_prop <- read.csv("comm_prop.csv", header=TRUE)
 comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
 
-head(comm_prop) #Head function will retun the FIRST 6 rows of the dataset
-tail(comm_prop) #Tail function will retun the LAST 6 rows of the dataset
-summary(comm_prop) #Summary function returns a compact analysis of the dataset
+kable(head(comm_prop), format = "html", align='c', caption = "Example of Data") #Head function will return the FIRST 6 rows of the dataset
 
-kable(head(comm_prop,5), format = "html", align='c', caption = "Example of Data")
+```
+
+```{r}
+# tail(comm_prop) #Tail function will return the LAST 6 rows of the dataset
+summary(comm_prop) #Summary function returns a compact analysis of the dataset
 ```
 
 Observations: Head, Tail and Summary metrics gives sense of the data. 
 Just by looking at the brief summary, we can notice few variables like SqFt, Taxes has a higher mean than its median. This indicates the variables are probably right skewed. We will explore further with histogram plots.
 
-Variables are : 
-    RentRate  - Continuous Variable 
-    Age       - Continuous Variable 
-    OperExp   - Continuous Variable 
-    VacRate   - Continuous Variable 
-    SqFt      - Continuous Variable 
+Variables are :   
+    RentRate  - Continuous Variable   
+    Age       - Continuous Variable   
+    OperExp   - Continuous Variable  
+    VacRate   - Continuous Variable   
+    SqFt      - Continuous Variable     
     Taxes     - Continuous Variable 
-    W2MiDT    - Categorical Variable 
+    W2MiDT    - Categorical Variable   
     
     
 ###Histograms for distribution visualization
@@ -82,7 +86,7 @@ round(cor(comm_prop[1:6]),3)
 ```
 
 **Correlation Matrix with scatterplots and correlation coefficients**
-```{r,results="hide",fig.keep='all'}
+```{r,results="hide",fig.keep='all',message=FALSE}
 ggpairs(comm_prop[,1:7] , 
         lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
         diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
