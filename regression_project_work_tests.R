@@ -30,7 +30,7 @@ plot(subsets, scale="adjr2")
 #^^ Based on the plot, our variable selection should be Age, OperExp, Taxes, and W2MiDT.
 
 "Model's attributes:
-Adjusted R^2: .73 -Very high adjusted R-squared value. 73% of the RentRate's variation can be 
+Adjusted R^2: .73 - Fairly high adjusted R-squared value. 73% of the RentRate's variation can be 
 explained by the Age, OperExp, W2MiDT, and Taxes variables.
 
 F-statistic: 68.36
@@ -53,14 +53,15 @@ shapiro.test(m$residuals) #low p-valud but pass
 
 "Tails are a bit out, this could suggest non-constant variance. However, we formally tested via the
 ncvTest and did not reject the null hypothesis."
-qqnorm(fit.2$residuals, pch=16)
-qqline(fit.2$residuals)
+qqnorm(m$residuals, pch=16)
+qqline(m$residuals)
 
 # Does not suggest Multicollinearity.
 car::vif(m)
 
 "Start on Predict: We are 95% confidence that the value of RentRate will be between 
 14.17338 and 18.20759"
-new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=5.40,W2MiDT="No")
+new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.0540,W2MiDT="No")
 predict(m, newdata = new_obs, interval="predict")
+
 
