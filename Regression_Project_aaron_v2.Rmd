@@ -21,14 +21,32 @@ library(knitr)
 ```
 
 # 1) An examination of the distributions of the variables
+
 ```{r, results='asis'}
 # comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
-comm_prop <- read.csv("comm_prop.csv")
+comm_prop <- read.csv("comm_prop.csv", header=TRUE)
 comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
+
+head(comm_prop) #Head function will retun the FIRST 6 rows of the dataset
+tail(comm_prop) #Tail function will retun the LAST 6 rows of the dataset
+summary(comm_prop) #Summary function returns a compact analysis of the dataset
+
 kable(head(comm_prop,5), format = "html", align='c', caption = "Example of Data")
 ```
 
+Observations: Head, Tail and Summary metrics gives sense of the data. 
+Just by looking at the brief summary, we can notice few variables like SqFt, Taxes has a higher mean than its median. This indicates the variables are probably right skewed. We will explore further with histogram plots.
 
+Variables are : 
+    RentRate  - Continuous Variable 
+    Age       - Continuous Variable 
+    OperExp   - Continuous Variable 
+    VacRate   - Continuous Variable 
+    SqFt      - Continuous Variable 
+    Taxes     - Continuous Variable 
+    W2MiDT    - Categorical Variable 
+    
+    
 ###Histograms for distribution visualization
 ```{r comm_prop, echo=FALSE}
 par(mfrow = c(3,3))
@@ -39,11 +57,22 @@ hist(comm_prop$VacRate)
 hist(comm_prop$SqFt)
 hist(comm_prop$Taxes)
 plot(comm_prop$W2MiDT , xlab="Within 2 Miles of Downtown", ylab="Frequency")
+boxplot(RentRate~W2MiDT, data=comm_prop)
 ```
 
-VacRate's distribution contains strong Right/positive skewness. SqFt and Taxes contain a slight amount of 
-right skewness. OperExp contains a slight amount of left/negative skewness. Age has an unusual 
-distribution shape to it as well.  W2MiDTNo has a higher frequncy.
+Observations: Histograms help us better understand the distribution of continuous variables. 
+Above, we have plotted all continuous variables into histograms and bar plot and boxplot for Categorical Variable.
+
+We noticed the following:
+Rental Rate         - looks normally distributed
+Age                 - appears bimodal. It has an unusual distribution shape to it. It looks like there were buildings built recently and also 
+                      around 15 years ago it was higher.
+OperExp             - contains a slight amount of left/negative skewness.
+VacRate             - contains strong Right/positive skewness
+SqFt                - contain a slight amount of right skewness
+Taxes               - contain a slight amount of right skewness
+W2MiDTNo            - has a higher frequency.
+
 
 #2)  An examination of the correlations for all continuous variables
 
@@ -57,38 +86,71 @@ round(cor(comm_prop[1:6]),3)
 ggpairs(comm_prop[,1:7] , 
         lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
         diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
+
+# 'ggpairs' function is derived from 'GGally' library and draws a martix of plots of the diven dataset
 ```
 
 **Correlation Matrix with ellipse representation of scatterplots**
 ```{r}
 corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
+#'corrplot' function is derived from the 'corrplot' library and returns the correlations of multiple factors of the dataset in graphical table
 ```
 
-RentRate and OperExp have a moderate positive correlation. RentRate and SqFt have a strong positive correlation.  RentRate and Taxes share the same correlation of .584. SqFt and Taxes have a perfect correlation
-of 1.00.  Other correlations to note are a negative correlation of -.366 between VacRate and OperExp, a very small correlation between Age and OperExp, and a very small negative correlation between Age and RentRate.  
+Observations:  
+SqFt and Taxes        - have a perfect correlation of 1.00.
+RentRate and OperExp  - have a moderate positive correlation. 
+RentRate and SqFt     - have a strong positive correlation.  
+RentRate and Taxes    - share the same correlation as of .584. 
+
+Other correlations to note are:
+VacRate and OperExp   - a negative correlation of -.366 
+Age and OperExp       - a very small correlation 
+Age and RentRate      - a very small negative correlation
 
 
 #3)  The identification and evaluation of a suitable regression model for predicting rental rates
 
-A manual iteration selection method will be used first.  The results will later be compared to results from Stepwise and All Subsets Regression (ASR) selection methods in order to select the most appropriate linear model.
+A manual iteration selection method will be used first.  
+ 
+Manual Iteration is a process of building the best-fit model by manually observing the data set and eliminating the factors without a significant p-value one by one. Then observing the new model’s adjusted R-sqaure value.
+The process of elimination is done for every variable that has the highest p-value (i.e is LEAST significant).
+
+For this, we use the ‘lm’ function, to fit Linear Models to the datasets and execute the ‘summary’ function on the model. 
+
+The results will later be compared to results from Stepwise and All Subsets Regression (ASR) selection methods in order to select the most appropriate linear model.
 
 
-##a) Manual Iterations
+##a) FIT FULL MODEL
+
 ```{r, warning=F}
 m <- lm(RentRate ~ ., data=comm_prop)
 summary(m)
 ```
 
+Observations:
 Results show the model's significant variables are Age, OperExp, and W2MiDT.  The Adjusted R-squared value is good at 0.73, with an F-statistic of 45.61 and a high significant p-value of <2.2e-16.  The model will now be trimmed to remove non-significant variables.
 
 First, VacRate will be dropped due to non-significance in addition to it being an unknown variable in our final prediction. VacRate data is not as readily available as the others. Also.,the variable Taxes (0.429) will be dropped from the model, due to multicolinearity with SqFt (0.434).  
 
+
+
+## ITERATE MANUALLY
+
 ```{r, warning=F}
-m.1 <- lm(RentRate ~ Age+OperExp+SqFt+W2MiDT, data=comm_prop)
+m.4 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT, data=comm_prop) # drop Taxes
+summary(m.4)
+
+m.3 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt, data=comm_prop) # drop W2MiDT
+summary(m.3)
+
+m.2 <- lm(RentRate ~ Age + OperExp + VacRate + W2MiDT, data=comm_prop) # drop SqFt
+summary(m.2)
+
+m.1 <- lm(RentRate ~ Age + OperExp + SqFt + W2MiDT, data=comm_prop) # drop VacRate
 summary(m.1)
 ```
 
-*All variables are highly significant.  Model m.1's summary shows an increased Adjusted R-squared value of .7313, an increased F-Statistic of 68.35, and no notable change in the p-value.*
+Observations: All variables are highly significant.  Model m.1's summary shows an increased Adjusted R-squared value of .7313, an increased F-Statistic of 68.35, and no notable change in the p-value.*
 
 
 ##b) Stepwise Iterations
@@ -168,9 +230,15 @@ summary(m.sub1)
 
 ```{r}
 leveragePlots(m.1,pch=16)
+
 leveragePlots(m.step,pch=16)
+
 leveragePlots(m.sub1,pch=16)
 ```
+
+Observations: Leverage Plots are a way to visualize which variables are significant.
+– If the red line is not close to the horizontal line at y = 0, the variable is considered to be significant
+
 
 ###Residuals Variance Plot
 ```{r}
@@ -191,7 +259,8 @@ ggplot(m.sub_df, aes(x=.fitted, y=.resid)) +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x="Fitted Values", y="Residuals", title="m.sub1")
 ```
-Models m.step and m.sub1 both seem to cluster in the middle section of the plot.  This suggests non-constant variance.
+
+Observations: Models m.step and m.sub1 both seem to cluster in the middle section of the plot.  This suggests non-constant variance.
 
 
 ###Checking for constant variance###
@@ -216,23 +285,25 @@ Conclusion: Significantly low p-values for the Shapiro-Wilk test confirm that bo
 ###Visual Representation of Normality and Constant Variance Tests###
 ```{r}
 par(mfrow=c(3,3))
+
 hist(m.1$residuals)
 plot(m.1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
 abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
 qqnorm(m.1$residuals, pch=16)
 qqline(m.1$residuals)
+
 hist(m.step$residuals)
 plot(m.step$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
 abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
 qqnorm(m.step$residuals, pch=16)
 qqline(m.step$residuals)
+
 hist(m.sub1$residuals)
 plot(m.sub1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
 abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
 qqnorm(m.sub1$residuals, pch=16)
 qqline(m.sub1$residuals)
 ```
-
 
 
 ###Test for Multicolinearity###
@@ -250,9 +321,12 @@ Conclusion:  Tests suggest no Multicolinearity.
 ```{r}
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,W2MiDT="No")
 predict(m.1, newdata = new_obs, interval="predict")
+
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
 predict(m.step, newdata = new_obs, interval="predict")
+
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
 predict(m.sub1, newdata = new_obs, interval="predict")
 ```
+
 **Prediction: We are 95% confidence that the value of RentRate will be between $12,120.37 and $16,235.17.  With the combined costs of Operating Expenses and Taxes, $13540.00, we cannot say with confidence that we will be able to "offset the costs of ownership."  We should sell the building.**
