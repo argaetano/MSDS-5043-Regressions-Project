@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1) An examination of the distributions of the variables
 ```{r}
-comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
+# comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
+comm_prop <- read.csv("comm_prop.csv")
 comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
 head(comm_prop,5)
 ```

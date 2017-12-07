@@ -7,6 +7,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(Hmisc)
+library(scales)
+library(stats)
+library(car)
+library(GGally)
 library(corrplot)
 ```
 
@@ -68,8 +75,8 @@ plot(subsets, scale="adjr2")
 ####^^ Based on the plot, our variable selection should be Age, OperExp, Taxes, and W2MiDT.
 
 ```{r}
-m <- lm(RentRate ~ Age+OperExp+W2MiDT+Taxes, data=comm_prop)
-summary(m)
+m <- lm(RentRate ~ Age+OperExp+W2MiDT+Taxes, data=comm_prop) # + Age:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+summary(m) #added interactive terms from Malini's result and got potentially more accurate model
 
 ```
 #Review and Interpretation of diagnostic plots
@@ -108,8 +115,8 @@ par(mfrow=c(2,2))
 hist(m$residuals)
 plot(m$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
 abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
-qqnorm(m$residuals, pch=16)
-qqline(m$residuals)
+qqPlot(m$residuals, pch=16)
+# qqline(m$residuals)
 ```
 
 Tails are a bit out, which could suggest non-constant variance. However, we formally tested via the

@@ -103,11 +103,11 @@ summary(model_6)
 
 ```{r}
 #remove Age:OpenExp  - Taking this as Model
-model_7 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT + Age:VacRate + OperExp:W2MiDT + SqFt:W2MiDT, data=comm_prop)
+model_7 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT, data=comm_prop)
 summary(model_7)
 
 
-leveragePlots(model_7,pch=16)
+#leveragePlots(model_7,pch=16)
 
 
 ```
