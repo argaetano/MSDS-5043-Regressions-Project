@@ -125,7 +125,7 @@ The results will later be compared to results from Stepwise and All Subsets Regr
 
 ##a) Manual Iteration
 
-### Fit Full Model
+## Fit Full Model
 ```{r, warning=F}
 m <- lm(RentRate ~ ., data=comm_prop)
 summary(m)
