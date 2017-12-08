@@ -195,13 +195,13 @@ summary(m.sub1)
 
 ## d) Review and Interpretation of diagnostic plots
               
-                <strong>Adjusted R-sqrd   F-Statistic</strong> 
+                  **Adjusted R-sqrd   F-Statistic**
               m.1       0.7313            68.35 
               m.step    0.8171            64.18
               m.sub1    0.8171            64.18
       
 
-**Models m.step and m.sub1 appear to to have the same values for F-Statistic and Adjusted R-squared the most appropriate predictive model.  Further examination will need to be conducted to determine the most appropriate model.**
+**Models m.step and m.sub1 appear to to have the same values for F-Statistic and Adjusted R-squared and therefore are more appropriate for a predictive model.  Further examination will need to be conducted to determine the most appropriate model.**
 
 ###Leverage Plot
 ```{r}
@@ -212,8 +212,7 @@ leveragePlots(m.step,pch=16)
 leveragePlots(m.sub1,pch=16)
 ```
 
-Observations: Leverage Plots are a way to visualize which variables are significant.
-– If the red line is not close to the horizontal line at y = 0, the variable is considered to be significant
+**Observations**: Since the leverage plots for m.1 have slopes farther from y=0, m.1 seems to have the most significant variables compared to the other models. 
 
 
 ###Residuals Variance Plot
@@ -236,7 +235,7 @@ ggplot(m.sub_df, aes(x=.fitted, y=.resid)) +
   labs(x="Fitted Values", y="Residuals", title="m.sub1")
 ```
 
-Observations: Models m.step and m.sub1 both seem to cluster in the middle section of the plot.  This suggests non-constant variance.
+**Observations**: Models m.step and m.sub1 both seem to cluster in the middle section of the plot.  This suggests non-constant variance.
 
 
 ###Checking for constant variance###
@@ -246,20 +245,11 @@ car::ncvTest(m.step)
 car::ncvTest(m.sub1)
 ```
 
-Conclusion: Significantly low p-values for the ncvTest confirm that both the m.step and m.sub1 models have non-constant variance.  The m.1 model maintains constant variance, however.
+**Conclusion**: Significantly low p-values for the ncvTest confirm that both the m.step and m.sub1 models have non-constant variance.  The m.1 model maintains constant variance, however.
 
 
-###Checking for Normality of Residuals###
-```{r}
-shapiro.test(m.1$residuals)
-shapiro.test(m.step$residuals)
-shapiro.test(m.sub1$residuals)
-```
 
-Conclusion: Significantly low p-values for the Shapiro-Wilk test confirm that both the m.step and m.sub1 models' are not normally distributed.  The m.1 model is normal.
-
-
-###Visual Representation of Normality and Constant Variance Tests###
+###Visual Representation of Normality of Residuals###
 ```{r}
 par(mfrow=c(2,3))
 
@@ -277,33 +267,59 @@ qqnorm(m.sub1$residuals, pch=16)
 qqline(m.sub1$residuals)
 ```
 
-Observations: 
+**Observations**: The residuals appear to be approximately normal.
 
-###Test for Multicolinearity###
+
+###Testing Normality of Residuals###
 ```{r}
-car::vif(m.1)
-car::vif(m.step)
-car::vif(m.sub1)
+shapiro.test(m.1$residuals)
+shapiro.test(m.step$residuals)
+shapiro.test(m.sub1$residuals)
+```
+
+**Conclusion**: Significantly low p-values for the Shapiro-Wilk test shows that both the m.step and m.sub1 models are not normally distributed.  The m.1 model has approximately normal residuals.
+
+
+###Test for Multicolinearity
+```{r}
+round(vif(m.1),3)
+round(vif(m.step),3)
+round(vif(m.sub1),3)
 
 ```
-Conclusion:  Tests suggest no Multicolinearity.
+**Conclusion**:  Tests suggest no Multicolinearity.
 
 
 # 4) Application of the Model
 
-**Without further data transformation, due to the non-constant variance and disnormality of the m.step and m.sub1 models, m.1 is the most appropriate model to use in our prediction.**
+Without further data transformation, due to the non-constant variance and disnormality of the m.step and m.sub1 models, **m.1 is the most appropriate model to use in our prediction.**
 
 **73% of the RentRate's Variation can be explained by Age, OperExp, SqFt and W2MiDT**
 
+###Application using mathematical function  
+
+$$RentRate = 12.05 - 0.104Age + 0.237OperExp + .00000664SqFt + 1.435W2MiDTYes + e$$
+
+```{r,ECHO=FALSE}
+12.05 - 0.104*9 + 0.237*13 + .00000664*40 + 1.435*0
+
+```
+
+###Application using predict() function (provides interval)
 ```{r}
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,W2MiDT="No")
 predict(m.1, newdata = new_obs, interval="predict")
 
-new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
-predict(m.step, newdata = new_obs, interval="predict")
-
-new_obs = data.frame(Age=9, SqFt=40,OperExp=13,Taxes=.54,W2MiDT="No")
-predict(m.sub1, newdata = new_obs, interval="predict")
 ```
 
-**Prediction: We are 95% confidence that the value of RentRate will be between $12,120.37 and $16,235.17.  With the combined costs of Operating Expenses and Taxes, $13540.00, we cannot say with confidence that we will be able to "offset the costs of ownership."  We should sell the building.**
+####**Prediction: We are 95% confidence that the value of RentRate will be between $12,160.37 and $16,235.17.  With the combined costs of Operating Expenses and Taxes, $13,540.00, we cannot say with confidence that we will be able to "offset the costs of ownership."  We should sell the building.**
+
+***
+
+###Further Discussions  
+
+Other data points that would potential help the ability to predict Rental Rate are:  
+1) More details about the costs that are incorporated in operating expenses so we can consider missing operation costs such as insurance, security, grounds-keeping, etc.    
+2) More detailed location  
+3) Market dynamics and trends  
+4) The domain of the market or consumers  
