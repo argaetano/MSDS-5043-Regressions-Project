@@ -22,7 +22,7 @@ library(corrplot)
 library(knitr)
 ```
 
-# 1) An examination of the distributions of the variables
+#1) An examination of the distributions of the variables
 
 ```{r, results='asis'}
 # comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
@@ -34,7 +34,6 @@ kable(head(comm_prop), format = "html", align='c', caption = "Example of Data") 
 ```
 
 ```{r}
-# tail(comm_prop) #Tail function will return the LAST 6 rows of the dataset
 summary(comm_prop) #Summary function returns a compact analysis of the dataset
 ```
 
@@ -51,7 +50,7 @@ Variables are :
     W2MiDT    - Categorical Variable   
     
     
-###Histograms for distribution visualization
+## Histograms for distribution visualization
 ```{r comm_prop, echo=FALSE}
 par(mfrow = c(3,3))
 hist(comm_prop$RentRate)
@@ -94,7 +93,7 @@ ggpairs(comm_prop[,1:7] ,
 # 'ggpairs' function is derived from 'GGally' library and draws a martix of plots of the diven dataset
 ```
 
-**Correlation Matrix with ellipse representation of scatterplots**
+##Correlation Matrix with ellipse representation of scatterplots**
 ```{r}
 corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
 #'corrplot' function is derived from the 'corrplot' library and returns the correlations of multiple factors of the dataset in graphical table
@@ -124,8 +123,9 @@ For this, we use the ‘lm’ function, to fit Linear Models to the datasets and
 The results will later be compared to results from Stepwise and All Subsets Regression (ASR) selection methods in order to select the most appropriate linear model.
 
 
-##a) FIT FULL MODEL
+##a) Manual Iteration
 
+### Fit Full Model
 ```{r, warning=F}
 m <- lm(RentRate ~ ., data=comm_prop)
 summary(m)
@@ -136,9 +136,6 @@ Results show the model's significant variables are Age, OperExp, and W2MiDT.  Th
 
 First, VacRate will be dropped due to non-significance in addition to it being an unknown variable in our final prediction. VacRate data is not as readily available as the others. Also.,the variable Taxes (0.429) will be dropped from the model, due to multicolinearity with SqFt (0.434).  
 
-
-
-## ITERATE MANUALLY
 
 ```{r, warning=F}
 m.4 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT, data=comm_prop) # drop Taxes
@@ -191,7 +188,7 @@ The m.step model has an Adjusted R-squared value of 0.8171 and an F-Statistic of
 *The Taxes variable is not significant, but it will stay in the model as its interaction with W2MiDT is highly significant.*
 
 
-##c) ASR Iteration
+##c) All Subsets Regression Iteration (ASR)
 
 ```{r}
 subsets <- regsubsets(RentRate ~ ., data=comm_prop)
@@ -222,16 +219,17 @@ summary(m.sub1)
 **The Adjusted R-squared value decreased slightly to 0.8171.  The F-Statistic increased to 64.18 and the p-value had no change.**
 
 
-##Review and Interpretation of diagnostic plots
+## d) Review and Interpretation of diagnostic plots
               
                 <strong>Adjusted R-sqrd   F-Statistic</strong> 
-              m.2       0.7313            68.35 
+              m.1       0.7313            68.35 
               m.step    0.8171            64.18
               m.sub1    0.8171            64.18
       
 
-###Models m.step1 and m.sub1 appear to to have the same values for F-Statistic and Adjusted R-squared the most appropriate predictive model.  Further examination will need to be conducted to determine the most appropriate model.
+**Models m.step and m.sub1 appear to to have the same values for F-Statistic and Adjusted R-squared the most appropriate predictive model.  Further examination will need to be conducted to determine the most appropriate model.**
 
+###Leverage Plot
 ```{r}
 leveragePlots(m.1,pch=16)
 
@@ -286,29 +284,26 @@ shapiro.test(m.sub1$residuals)
 
 Conclusion: Significantly low p-values for the Shapiro-Wilk test confirm that both the m.step and m.sub1 models' are not normally distributed.  The m.1 model is normal.
 
+
 ###Visual Representation of Normality and Constant Variance Tests###
 ```{r}
-par(mfrow=c(3,3))
+par(mfrow=c(2,3))
 
 hist(m.1$residuals)
-plot(m.1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
-abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
+hist(m.step$residuals)
+hist(m.sub1$residuals)
+
 qqnorm(m.1$residuals, pch=16)
 qqline(m.1$residuals)
 
-hist(m.step$residuals)
-plot(m.step$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
-abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
 qqnorm(m.step$residuals, pch=16)
 qqline(m.step$residuals)
 
-hist(m.sub1$residuals)
-plot(m.sub1$residuals ~ comm_prop$RentRate,pch=16, main="Residual Plot")
-abline(h = 0, lty = 3)  # adds a horizontal dashed line at y = 0
 qqnorm(m.sub1$residuals, pch=16)
 qqline(m.sub1$residuals)
 ```
 
+Observations: 
 
 ###Test for Multicolinearity###
 ```{r}
@@ -320,7 +315,11 @@ car::vif(m.sub1)
 Conclusion:  Tests suggest no Multicolinearity.
 
 
+# 4) Application of the Model
+
 **Without further data transformation, due to the non-constant variance and disnormality of the m.step and m.sub1 models, m.1 is the most appropriate model to use in our prediction.**
+
+**73% of the RentRate's Variation can be explained by Age, OperExp, SqFt and W2MiDT**
 
 ```{r}
 new_obs = data.frame(Age=9, SqFt=40,OperExp=13,W2MiDT="No")
