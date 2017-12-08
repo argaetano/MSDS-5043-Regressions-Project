@@ -1,11 +1,14 @@
 ---
 title: "Regression_Project_Final"
-author: "Aaron Goletz"
-date: "December 6, 2017"
+author: "Aaron Goletz, Alex Aubrey, Malini Senthilkumar, Angela Gaetano"
+date: "December 7, 2017"
 output:
   html_document: default
   word_document: default
 ---
+
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -25,7 +28,6 @@ library(knitr)
 #1) An examination of the distributions of the variables
 
 ```{r, results='asis'}
-# comm_prop <- read.csv("C:/Users/aaron.goletz/Desktop/My Docs/Lipscomb Documents/Stats Analysis and Decision Modeling/MSDS 5043/comm_prop.csv")
 comm_prop <- read.csv("comm_prop.csv", header=TRUE)
 comm_prop$W2MiDT <- factor(comm_prop$W2MiDT, labels = c("No", "Yes"))
 
@@ -37,10 +39,10 @@ kable(head(comm_prop), format = "html", align='c', caption = "Example of Data") 
 summary(comm_prop) #Summary function returns a compact analysis of the dataset
 ```
 
-Observations: Head, Tail and Summary metrics gives sense of the data. 
-Just by looking at the brief summary, we can notice few variables like SqFt, Taxes has a higher mean than its median. This indicates the variables are probably right skewed. We will explore further with histogram plots.
+**Observations**: The sample Data and Summary provide a sense of the data. 
+Just by looking at the brief summary, we observe that a few variables like SqFt and Taxes have a higher mean than their medians. This indicates the variables are probably right-skewed. We will explore the distributions further with histogram plots.
 
-Variables are :   
+**Variables are : **  
     RentRate  - Continuous Variable   
     Age       - Continuous Variable   
     OperExp   - Continuous Variable  
@@ -63,26 +65,22 @@ plot(comm_prop$W2MiDT , xlab="Within 2 Miles of Downtown", ylab="Frequency")
 boxplot(RentRate~W2MiDT, data=comm_prop)
 ```
 
-Observations: Histograms help us better understand the distribution of continuous variables. 
-Above, we have plotted all continuous variables into histograms and bar plot and boxplot for Categorical Variable.
+**Observations**: Histograms help us better understand the distribution of continuous variables. 
+Above, we have plotted all continuous variables into histograms and have created a bar plot and boxplot for categorical variables.
 
-We noticed the following:
-Rental Rate         - looks normally distributed
-Age                 - appears bimodal. It has an unusual distribution shape to it. It looks like there were buildings built recently and also 
-                      around 15 years ago it was higher.
-OperExp             - contains a slight amount of left/negative skewness.
-VacRate             - contains strong Right/positive skewness
-SqFt                - contain a slight amount of right skewness
-Taxes               - contain a slight amount of right skewness
-W2MiDTNo            - has a higher frequency.
-
+**We noticed the following:**  
+Rental Rate         - looks normally distributed  
+Age                 - appears bimodal. Building construction occurred more frequently about 15 years ago and within the last few years.  
+OperExp             - contains a slight amount of left/negative skewness  
+VacRate             - contains strong Right/positive skewness  
+SqFt                - contain a slight amount of right skewness  
+Taxes               - contain a slight amount of right skewness  
+W2MiDTNo            - has a higher frequency  
+*
+The boxplot indicates that the rental rates are higher when the building is within two miles of downtown.   
 
 #2)  An examination of the correlations for all continuous variables
 
-**Correlation Matrix**
-```{r}
-round(cor(comm_prop[1:6]),3)
-```
 
 **Correlation Matrix with scatterplots and correlation coefficients**
 ```{r,results="hide",fig.keep='all',message=FALSE}
@@ -90,68 +88,44 @@ ggpairs(comm_prop[,1:7] ,
         lower = list(continuous = wrap("points", color = "red", alpha = 0.5)), 
         diag = list(continuous = wrap("densityDiag",  color = "blue", alpha = 0.5)))
 
-# 'ggpairs' function is derived from 'GGally' library and draws a martix of plots of the diven dataset
 ```
 
-##Correlation Matrix with ellipse representation of scatterplots**
-```{r}
-corrplot(cor(comm_prop[,c(1:6)]), method="ellipse")
-#'corrplot' function is derived from the 'corrplot' library and returns the correlations of multiple factors of the dataset in graphical table
-```
 
-Observations:  
-SqFt and Taxes        - have a perfect correlation of 1.00.
-RentRate and OperExp  - have a moderate positive correlation. 
-RentRate and SqFt     - have a strong positive correlation.  
-RentRate and Taxes    - share the same correlation as of .584. 
+**Observations:**  
+SqFt and Taxes        - have a perfect correlation of 1.00.  
+RentRate and OperExp  - have a moderate positive correlation.   
+RentRate and SqFt     - have a strong positive correlation.    
+RentRate and Taxes    - share the same correlation as of .584.   
 
-Other correlations to note are:
-VacRate and OperExp   - a negative correlation of -.366 
-Age and OperExp       - a very small correlation 
-Age and RentRate      - a very small negative correlation
+**Other correlations to note are:**
+VacRate and OperExp   - a negative correlation of -.366   
+Age and OperExp       - a very small correlation   
+Age and RentRate      - a very small negative correlation  
 
 
 #3)  The identification and evaluation of a suitable regression model for predicting rental rates
 
-A manual iteration selection method will be used first.  
- 
-Manual Iteration is a process of building the best-fit model by manually observing the data set and eliminating the factors without a significant p-value one by one. Then observing the new model’s adjusted R-sqaure value.
-The process of elimination is done for every variable that has the highest p-value (i.e is LEAST significant).
-
-For this, we use the ‘lm’ function, to fit Linear Models to the datasets and execute the ‘summary’ function on the model. 
-
-The results will later be compared to results from Stepwise and All Subsets Regression (ASR) selection methods in order to select the most appropriate linear model.
-
 
 ##a) Manual Iteration
 
-## Fit Full Model
+### Fit Full Model
 ```{r, warning=F}
 m <- lm(RentRate ~ ., data=comm_prop)
 summary(m)
 ```
 
-Observations:
-Results show the model's significant variables are Age, OperExp, and W2MiDT.  The Adjusted R-squared value is good at 0.73, with an F-statistic of 45.61 and a high significant p-value of <2.2e-16.  The model will now be trimmed to remove non-significant variables.
+**Observations:**
+Results show the model's significant variables are Age, OperExp, and W2MiDT.  The Adjusted R-squared value is 0.73, with an F-statistic of 45.61 and a highly significant p-value of <2.2e-16.  The model will now be trimmed to remove non-significant variables.
 
-First, VacRate will be dropped due to non-significance in addition to it being an unknown variable in our final prediction. VacRate data is not as readily available as the others. Also.,the variable Taxes (0.429) will be dropped from the model, due to multicolinearity with SqFt (0.434).  
+First, VacRate will be dropped due to non-significance (p-value 0.408). In addition, VacRate is unavailable for use as a final predictor due to unavailable data. Also, the variable Taxes will be dropped from the model due to multicolinearity with SqFt (correlation coefficient 1.0) as evidenced by the correlation matrix above. Since Taxes is a result of SqFt, we are dropping Taxes and retained SqFt in our model.
 
 
 ```{r, warning=F}
-m.4 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt + W2MiDT, data=comm_prop) # drop Taxes
-summary(m.4)
-
-m.3 <- lm(RentRate ~ Age + OperExp + VacRate + SqFt, data=comm_prop) # drop W2MiDT
-summary(m.3)
-
-m.2 <- lm(RentRate ~ Age + OperExp + VacRate + W2MiDT, data=comm_prop) # drop SqFt
-summary(m.2)
-
-m.1 <- lm(RentRate ~ Age + OperExp + SqFt + W2MiDT, data=comm_prop) # drop VacRate
+m.1 <- lm(RentRate ~ Age + OperExp + SqFt + W2MiDT, data=comm_prop)
 summary(m.1)
 ```
 
-Observations: All variables are highly significant.  Model m.1's summary shows an increased Adjusted R-squared value of .7313, an increased F-Statistic of 68.35, and no notable change in the p-value.*
+**Observations**: All variables are highly significant.  Model m.1's summary shows an increased Adjusted R-squared value of .7313, a slightly increased F-Statistic of 68.35, and no notable change in the p-value.
 
 
 ##b) Stepwise Iterations
@@ -188,10 +162,10 @@ The m.step model has an Adjusted R-squared value of 0.8171 and an F-Statistic of
 *The Taxes variable is not significant, but it will stay in the model as its interaction with W2MiDT is highly significant.*
 
 
-##c) All Subsets Regression Iteration (ASR)
+##c) All Subsets Regression (ASR) Iteration 
 
 ```{r}
-subsets <- regsubsets(RentRate ~ ., data=comm_prop)
+subsets <- regsubsets(RentRate ~ .*., data=comm_prop)
 plot(subsets, scale="adjr2")
 
 ```
